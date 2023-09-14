@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const usuarioSchema = mongoose.Schema({
+const userSchema = mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Por favor teclea un nombre']
@@ -15,21 +15,33 @@ const usuarioSchema = mongoose.Schema({
     required: [true, 'Por favor teclea un password']
   },
   photo: {
+    type: String
+  },
+  phone: {
+    type: Number,
+    required: [true, 'Por favor introduce tu telefono']
+  },
+
+  nickname: {
+    type: String
+  },
+  city: {
     type: String,
-    required: [true]
+    required: [true, 'Por favor introduce tu ciudad']
+  },
+  linkedIn: {
+    type: String
+  },
+  github: {
+    type: String
   },
   instagram: {
     type: String
   },
-  linkedIn: {
-    type: String,
-    required: [true, 'Introduce tu LinkedIn']
-  },
-  nickname: {
-    type: String,
-    required: [true, 'Por favor introduce tu nickname']
-  },
   facebook: {
+    type: String
+  },
+  website: {
     type: String
   },
   description: {
@@ -40,7 +52,7 @@ const usuarioSchema = mongoose.Schema({
     type: String,
     required: [true, 'Describe el tipo de servicios que ofreces']
   },
-  github: {
+  tags: {
     type: String
   }
 
@@ -48,4 +60,4 @@ const usuarioSchema = mongoose.Schema({
   timestamps: true
 })
 
-module.exports = mongoose.model('Usuario', usuarioSchema)
+module.exports = mongoose.model('User', userSchema)
