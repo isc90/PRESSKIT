@@ -18,8 +18,14 @@ const userSchema = mongoose.Schema({
     type: String
   },
   phone: {
+
     type: Number,
-    required: [true, 'Por favor introduce tu telefono']
+    required: [true, 'Por favor introduce tu telefono'],
+    validate: {
+      validator: value => validatePhoneLength(value, 10),
+      message: 'Ingresa un numero valido de 10 digitos'
+    },
+    unique: true
   },
 
   nickname: {
@@ -59,5 +65,9 @@ const userSchema = mongoose.Schema({
 }, {
   timestamps: true
 })
+
+function validatePhoneLength (value, length) {
+  return value.toString().length === length
+}
 
 module.exports = mongoose.model('User', userSchema)
