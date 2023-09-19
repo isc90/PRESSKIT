@@ -17,7 +17,7 @@ services: String
 
 
 -login
-http://localhost:5001/presskit/users/login
+http://localhost:5001/presskit/login
 
 Login{
 email: String,
