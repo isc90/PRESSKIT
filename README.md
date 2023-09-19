@@ -24,6 +24,9 @@ email: String,
 password: String
 }
 
+-getInfo
+http://localhost:5001/presskit/editMyInfo/:id
+Bearer Token Header
+
 -updateUser
 http://localhost:5001/presskit/editMyInfo/:id
-
