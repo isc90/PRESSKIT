@@ -3,7 +3,7 @@
 Endpoints
 
 - registerUser
-http://localhost:5001/presskit/users/register
+http://localhost:5001/api/v1/users/register
 
 Schema (All fields required to register) {
 name: String,
@@ -17,16 +17,22 @@ services: String
 
 
 -login
-http://localhost:5001/presskit/login
+http://localhost:5001/api/v1/login
 
 Login{
 email: String,
 password: String
 }
 
--getInfo
-http://localhost:5001/presskit/editMyInfo/:id
+-getInfo publica
+http://localhost:5001/api/v1/profile/nickname
+
+
+getInfo privada
+http://localhost:5001/api/v1/me
 Bearer Token Header
 
+
 -updateUser
-http://localhost:5001/presskit/editMyInfo/:id
+http://localhost:5001/api/v1/editMyInfo/:id
+Bearer Token Header
