@@ -103,6 +103,11 @@ const getUserData = asyncHandler(async (req, res) => {
   res.json(req.user)
 })
 
+const getProfile = asyncHandler(async (req, res) => {
+  req.user = await User.find({ nickname: req.params.nickname }).select('-password')
+  res.json(req.user)
+})
+
 const editUser = asyncHandler(async (req, res) => {
   const {
     name,
@@ -166,5 +171,6 @@ module.exports = {
   registerUser,
   loginUser,
   getUserData,
-  editUser
+  editUser,
+  getProfile
 }

@@ -19,7 +19,7 @@ app.use(bodyParser.json())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-app.use('/presskit', require('./routes/userRoutes'))
+app.use('/api/v1', require('./routes/userRoutes'))
 
 app.use(errorHandler)
 app.listen(port, () => console.log(`Server started on port ${port}`))

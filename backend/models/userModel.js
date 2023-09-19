@@ -60,6 +60,9 @@ const userSchema = mongoose.Schema({
   },
   tags: {
     type: String
+  },
+  qr: {
+    //
   }
 
 }, {
