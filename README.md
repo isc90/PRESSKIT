@@ -23,3 +23,7 @@ Login{
 email: String,
 password: String
 }
+
+-updateUser
+http://localhost:5001/presskit/editMyInfo/:id
+
