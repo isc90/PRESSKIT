@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
+const fs = require('fs')
 
 const registerUser = asyncHandler(async (req, res) => {
   const {
@@ -108,6 +109,34 @@ const getProfile = asyncHandler(async (req, res) => {
   res.json(req.user)
 })
 
+const getUserVcf = asyncHandler(async (req, res) => {
+  req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
+  const user1 = req.user
+  const name = user1.name
+  const email = user1.email
+  const phone = user1.phone
+  if (!req.user) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+  function userToVcf (n, e, p) {
+    return `BEGIN:VCARD
+  VERSION:3.0
+  FN:${n}
+  EMAIL:${e}
+  TEL:${p}
+  END:VCARD
+  `
+  }
+
+  const vcfData = userToVcf(name, email, phone)
+  fs.writeFileSync('user.vcf', vcfData, 'utf-8')
+
+  res.download('user.vcf', 'user.vcf', (err) => {
+    if (err) {
+      console.error('Error sending VCF file:', err)
+    }
+  })
+})
 const editUser = asyncHandler(async (req, res) => {
   const {
     name,
@@ -172,5 +201,6 @@ module.exports = {
   loginUser,
   getUserData,
   editUser,
-  getProfile
+  getProfile,
+  getUserVcf
 }

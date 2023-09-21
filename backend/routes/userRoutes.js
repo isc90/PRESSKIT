@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { registerUser, loginUser, getUserData, editUser, getProfile } = require('../controllers/userControllers') // controladores
+const { registerUser, loginUser, getUserData, editUser, getProfile, getUserVcf } = require('../controllers/userControllers') // controladores
 
 const { auth } = require('../middleware/authMiddleware')
 
@@ -9,6 +9,7 @@ const { auth } = require('../middleware/authMiddleware')
 router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.get('/profile/:nickname', getProfile)
+router.get('/vcf/:nickname', getUserVcf)
 
 // private
 router.get('/me', auth, getUserData)
