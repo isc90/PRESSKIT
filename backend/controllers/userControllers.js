@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
+const { userImageUpload } = require('../utils/cloudinary')
 
 const registerUser = asyncHandler(async (req, res) => {
   const {
@@ -108,7 +109,9 @@ const getProfile = asyncHandler(async (req, res) => {
   res.json(req.user)
 })
 
-const editUser = asyncHandler(async (req, res) => {
+// const setProfilePicture = { TODO }
+/**
+ * const editUser = asyncHandler(async (req, res) => {
   const {
     name,
     email,
@@ -158,10 +161,121 @@ const editUser = asyncHandler(async (req, res) => {
       user.services = services
       user.tags = tags
 
+      const imgPath = user.photo
+
+      if (imgPath) {
+        const imageTag = await userImageUpload(imgPath)
+        user.photo = imageTag
+      }
+
       await user.save() // Guardar los cambios en el usuario
 
       res.status(200).json({ message: 'Usuario actualizado con éxito' })
     }
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar el usuario', error: error.message })
+  }
+})
+ */
+const editUser = asyncHandler(async (req, res) => {
+  const {
+    name,
+    email,
+    password,
+    photo,
+    phone,
+    nickname,
+    city,
+    linkedIn,
+    github,
+    instagram,
+    facebook,
+    website,
+    description,
+    services,
+    tags
+  } = req.body
+
+  const userId = req.user._id
+
+  try {
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    // Actualiza los campos solo si se proporciona un valor en el formulario
+    if (name) {
+      user.name = name
+    }
+    if (email) {
+      user.email = email
+    }
+    // Hashear el nuevo password si se proporciona
+    if (password) {
+      const salt = await bcrypt.genSalt(10)
+      const hashedPassword = await bcrypt.hash(password, salt)
+      user.password = hashedPassword
+    }
+
+    // Carga la nueva foto si se proporciona
+    const imgPath = photo
+    if (imgPath == null) {
+      user.photo = req.user.photo
+      // Verifica si imgPath es una ruta de archivo válida antes de cargar la imagen
+    } else {
+      const imageTag = await userImageUpload(imgPath)
+      user.photo = imageTag
+    }
+
+    if (phone) {
+      user.phone = phone
+    }
+
+    if (nickname) {
+      user.nickname = nickname
+    }
+
+    if (city) {
+      user.city = city
+    }
+
+    if (linkedIn) {
+      user.linkedIn = linkedIn
+    }
+
+    if (github) {
+      user.github = github
+    }
+
+    if (instagram) {
+      user.instagram = instagram
+    }
+
+    if (facebook) {
+      user.facebook = facebook
+    }
+
+    if (website) {
+      user.website = website
+    }
+
+    if (description) {
+      user.description = description
+    }
+
+    if (services) {
+      user.services = services
+    }
+
+    if (tags) {
+      user.tags = tags
+    }
+
+    await user.save()
+
+    res.status(200).json({ message: 'Usuario actualizado con éxito' })
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar el usuario', error: error.message })
   }
