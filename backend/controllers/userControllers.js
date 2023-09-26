@@ -129,7 +129,7 @@ const getUserVcf = asyncHandler(async (req, res) => {
   }
   const folderPath = require('../VCF')
   const fileName = `${name}.vcf`
-  const filePath = `${folderPath}/${fileName}`;
+  const filePath = `${folderPath}/${fileName}`
   const vcfData = userToVcf(name, email, phone)
   fs.writeFileSync(filePath, vcfData, 'utf-8')
 
