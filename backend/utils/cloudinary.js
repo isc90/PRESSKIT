@@ -49,8 +49,8 @@ const getAssetInfo = async (publicId) => {
   try {
     // Get details about the asset
     const result = await cloudinary.api.resource(publicId, options)
-    // console.log(result)
-    return result.colors
+    console.log(result.url)
+    return result
   } catch (error) {
     console.error(error)
   }
@@ -62,6 +62,7 @@ const getAssetInfo = async (publicId) => {
 // focused on the faces, applying an outline of the
 // first color, and setting a background of the second color.
 /// ///////////////////////////////////////////////////////////
+
 const createImageTag = (publicId, ...colors) => {
   // Set the effect color and background color
   const [effectColor, backgroundColor] = colors
@@ -75,7 +76,7 @@ const createImageTag = (publicId, ...colors) => {
       { background: backgroundColor }
     ]
   })
-
+  console.log(imageTag)
   return imageTag
 }
 
@@ -89,19 +90,26 @@ const userImageUpload = asyncHandler(async (path) => {
   // eslint-disable-next-line no-undef
   const imagePath = path
 
-  // Upload the image
-  const publicId = await uploadImage(imagePath)
+  try {
+    // Upload the image
+    const result = await cloudinary.uploader.upload(imagePath, {
+      use_filename: true,
+      unique_filename: false,
+      overwrite: true
+    })
+    // Obtener la URL de la imagen de la respuesta de Cloudinary
+    const imageUrl = result.secure_url
 
-  // Get the colors in the image
-  const colors = await getAssetInfo(publicId)
+    // Log the image URL to the console
 
-  // Create an image tag, using two of the colors in a transformation
-  const imageTag = await createImageTag(publicId, colors[0][0], colors[0][0])
+    console.log(imageUrl)
 
-  // Log the image tag to the console
-  console.log(imageTag)
-  // return tag
-  return imageTag
+    // Devolver la URL de la imagen
+    return imageUrl
+  } catch (error) {
+    console.error(error)
+    throw new Error('Error uploading image')
+  }
 })
 
 module.exports = {

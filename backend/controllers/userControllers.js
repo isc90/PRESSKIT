@@ -129,7 +129,7 @@ const getUserVcf = asyncHandler(async (req, res) => {
   }
   const folderPath = require('../VCF')
   const fileName = `${name}.vcf`
-  const filePath = `${folderPath}/${fileName}`;
+  const filePath = `${folderPath}/${fileName}`
   const vcfData = userToVcf(name, email, phone)
   fs.writeFileSync(filePath, vcfData, 'utf-8')
 
@@ -188,8 +188,8 @@ const editUser = asyncHandler(async (req, res) => {
       user.photo = req.user.photo
       // Verifica si imgPath es una ruta de archivo válida antes de cargar la imagen
     } else {
-      const imageTag = await userImageUpload(imgPath)
-      user.photo = imageTag
+      const url = await userImageUpload(imgPath)
+      user.photo = url
     }
 
     if (phone) {
