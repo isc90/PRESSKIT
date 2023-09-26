@@ -29,7 +29,8 @@ const userSchema = mongoose.Schema({
   },
 
   nickname: {
-    type: String
+    type: String,
+    unique: true
   },
   city: {
     type: String,
