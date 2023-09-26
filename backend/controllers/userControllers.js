@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken')
 const { userImageUpload } = require('../utils/cloudinary')
 const fs = require('fs')
 
-
 const registerUser = asyncHandler(async (req, res) => {
   const {
     name,
@@ -138,75 +137,6 @@ const getUserVcf = asyncHandler(async (req, res) => {
     }
   })
 })
-
-/**
-const editUser = asyncHandler(async (req, res) => {
-
-  const {
-    name,
-    email,
-    password,
-    photo,
-    phone,
-    nickname,
-    city,
-    linkedIn,
-    github,
-    instagram,
-    facebook,
-    website,
-    description,
-    services,
-    tags
-  } = req.body
-
-  const userId = req.user._id
-
-  try {
-    const user = await User.findById(userId)
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' })
-    } else {
-      user.name = name
-      user.email = email
-
-      // Hashear el nuevo password
-      if (password) {
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
-        user.password = hashedPassword
-      }
-
-      user.photo = photo
-      user.phone = phone
-      user.nickname = nickname
-      user.city = city
-      user.linkedIn = linkedIn
-      user.github = github
-      user.instagram = instagram
-      user.facebook = facebook
-      user.website = website
-      user.description = description
-      user.services = services
-      user.tags = tags
-
-      const imgPath = user.photo
-
-      if (imgPath) {
-        const imageTag = await userImageUpload(imgPath)
-        user.photo = imageTag
-      }
-
-      await user.save() // Guardar los cambios en el usuario
-
-      res.status(200).json({ message: 'Usuario actualizado con éxito' })
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar el usuario', error: error.message })
-  }
-})
- */
 
 const editUser = asyncHandler(async (req, res) => {
   const {

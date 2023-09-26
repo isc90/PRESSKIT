@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { registerUser, loginUser, getUserData, editUser, getProfile, getUserVcf } = require('../controllers/userControllers') // controladores
+const { registerUser, loginUser, getUserData, editUser, getProfile, getUserVcf } = require('../controllers/userControllers')
 
 const { auth } = require('../middleware/authMiddleware')
 
