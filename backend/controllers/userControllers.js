@@ -188,8 +188,8 @@ const editUser = asyncHandler(async (req, res) => {
       user.photo = req.user.photo
       // Verifica si imgPath es una ruta de archivo válida antes de cargar la imagen
     } else {
-      const imageTag = await userImageUpload(imgPath)
-      user.photo = imageTag
+      const url = await userImageUpload(imgPath)
+      user.photo = url
     }
 
     if (phone) {
