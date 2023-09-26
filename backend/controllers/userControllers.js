@@ -127,9 +127,11 @@ const getUserVcf = asyncHandler(async (req, res) => {
   END:VCARD
   `
   }
-
+  const folderPath = require('../VCF')
+  const fileName = `${name}.vcf`
+  const filePath = `${folderPath}/${fileName}`;
   const vcfData = userToVcf(name, email, phone)
-  fs.writeFileSync('user.vcf', vcfData, 'utf-8')
+  fs.writeFileSync(filePath, vcfData, 'utf-8')
 
   res.download('user.vcf', 'user.vcf', (err) => {
     if (err) {
