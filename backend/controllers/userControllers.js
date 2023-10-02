@@ -106,9 +106,29 @@ const getUserData = asyncHandler(async (req, res) => {
 })
 
 const getProfile = asyncHandler(async (req, res) => {
-  req.user = await User.find({ nickname: req.params.nickname }).select('-password')
+  req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
+  const u = req.user
+  const nicknameU = u.nickname
+  const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
+  const filename = `${nicknameU}qrcode.png`
+  generateQRCode(data, filename)
   res.json(req.user)
 })
+
+async function generateQRCode (data, filename) {
+  try {
+    const qrCodeDataUrl = await QRCode.toDataURL(data)
+    // Remove the "data:image/png;base64," prefix to get the raw base64 data
+    const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '')
+    // Convert base64 data to a buffer
+    const qrCodeBuffer = Buffer.from(base64Data, 'base64')
+    // Save the buffer as an image file
+    fs.writeFileSync(filename, qrCodeBuffer)
+    console.log(`QR code saved as ${filename}`)
+  } catch (error) {
+    console.error('Error generating QR code:', error)
+  }
+}
 
 const getUserVcf = asyncHandler(async (req, res) => {
   req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
