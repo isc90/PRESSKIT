@@ -37,9 +37,6 @@ const uploadImage = async (imagePath) => {
   }
 }
 
-/// //////////////////////////////////
-// Gets details of an uploaded image
-/// //////////////////////////////////
 const getAssetInfo = async (publicId) => {
   // Return colors in the response
   const options = {
@@ -85,14 +82,11 @@ const createImageTag = (publicId, ...colors) => {
 // Main function
 //
 /// ///////////////
-const userImageUpload = asyncHandler(async (path) => {
+const userImageUpload = asyncHandler(async (file) => {
   // Set the image to upload
-  // eslint-disable-next-line no-undef
-  const imagePath = path
-
   try {
     // Upload the image
-    const result = await cloudinary.uploader.upload(imagePath, {
+    const result = await cloudinary.uploader.upload(file.path, {
       use_filename: true,
       unique_filename: false,
       overwrite: true
