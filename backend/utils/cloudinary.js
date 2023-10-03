@@ -38,9 +38,6 @@ const uploadImage = async (imagePath) => {
   }
 }
 
-/// //////////////////////////////////
-// Gets details of an uploaded image
-/// //////////////////////////////////
 const getAssetInfo = async (publicId) => {
   // Return colors in the response
   const options = {
@@ -50,8 +47,8 @@ const getAssetInfo = async (publicId) => {
   try {
     // Get details about the asset
     const result = await cloudinary.api.resource(publicId, options)
-    // console.log(result)
-    return result.colors
+    console.log(result.url)
+    return result
   } catch (error) {
     console.error(error)
   }
@@ -63,6 +60,7 @@ const getAssetInfo = async (publicId) => {
 // focused on the faces, applying an outline of the
 // first color, and setting a background of the second color.
 /// ///////////////////////////////////////////////////////////
+
 const createImageTag = (publicId, ...colors) => {
   // Set the effect color and background color
   const [effectColor, backgroundColor] = colors
@@ -76,7 +74,7 @@ const createImageTag = (publicId, ...colors) => {
       { background: backgroundColor }
     ]
   })
-
+  console.log(imageTag)
   return imageTag
 }
 
@@ -85,24 +83,28 @@ const createImageTag = (publicId, ...colors) => {
 // Main function
 //
 /// ///////////////
-const userImageUpload = asyncHandler(async (path) => {
+const userImageUpload = asyncHandler(async (file) => {
   // Set the image to upload
-  // eslint-disable-next-line no-undef
-  const imagePath = path
+  try {
+    // Upload the image
+    const result = await cloudinary.uploader.upload(file.path, {
+      use_filename: true,
+      unique_filename: false,
+      overwrite: true
+    })
+    // Obtener la URL de la imagen de la respuesta de Cloudinary
+    const imageUrl = result.secure_url
 
-  // Upload the image
-  const publicId = await uploadImage(imagePath)
+    // Log the image URL to the console
 
-  // Get the colors in the image
-  const colors = await getAssetInfo(publicId)
+    console.log(imageUrl)
 
-  // Create an image tag, using two of the colors in a transformation
-  const imageTag = await createImageTag(publicId, colors[0][0], colors[0][0])
-
-  // Log the image tag to the console
-  console.log(imageTag)
-  // return tag
-  return imageTag
+    // Devolver la URL de la imagen
+    return imageUrl
+  } catch (error) {
+    console.error(error)
+    throw new Error('Error uploading image')
+  }
 })
 
 module.exports = {

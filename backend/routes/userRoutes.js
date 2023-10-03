@@ -1,11 +1,10 @@
 const express = require('express')
 const router = express.Router()
-
 const { registerUser, loginUser, getUserData, editUser, getProfile, getUserVcf } = require('../controllers/userControllers')
-
 const { auth } = require('../middleware/authMiddleware')
 const { upload } = require('../middleware/uploadMiddleware')
 const { uploadImage } = require('../utils/cloudinary')
+
 
 // public
 router.post('/register', registerUser)
@@ -15,7 +14,7 @@ router.get('/vcf/:nickname', getUserVcf)
 
 // private
 router.get('/me', auth, getUserData)
-router.post('/editMyInfo/:id', auth, editUser)
+router.post('/editMyInfo/:id', auth, upload.single('photo'), editUser)
 
 router.post('/uploadProfilePicture', auth, upload.single('photo'), async (req, res, next) => {
   const file = req.file

@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler')
+const { upload } = require('../middleware/uploadMiddleware')
 const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
@@ -94,7 +95,6 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 })
 
-// token generator
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30m'
@@ -106,9 +106,30 @@ const getUserData = asyncHandler(async (req, res) => {
 })
 
 const getProfile = asyncHandler(async (req, res) => {
-  req.user = await User.find({ nickname: req.params.nickname }).select('-password')
+  req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
+  const u = req.user
+  const nicknameU = u.nickname
+  const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
+  const filename = `${nicknameU}qrcode.png`
+  generateQRCode(data, filename)
   res.json(req.user)
 })
+
+async function generateQRCode (data, filename) {
+  try {
+    const qrCodeDataUrl = await QRCode.toDataURL(data)
+    // Remove the "data:image/png;base64," prefix to get the raw base64 data
+    const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '')
+    // Convert base64 data to a buffer
+    const qrCodeBuffer = Buffer.from(base64Data, 'base64')
+    // Save the buffer as an image file
+    fs.writeFileSync(filename, qrCodeBuffer)
+    console.log(`QR code saved as ${filename}`)
+  } catch (error) {
+    console.error('Error generating QR code:', error)
+  }
+}
+
 const getUserVcf = asyncHandler(async (req, res) => {
   req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
   const user1 = req.user
@@ -204,18 +225,32 @@ const editUser = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' })
     }
 
-    // Actualiza los campos solo si se proporciona un valor en el formulario
     if (name) {
       user.name = name
     }
     if (email) {
       user.email = email
     }
-    // Hashear el nuevo password si se proporciona
+
     if (password) {
       const salt = await bcrypt.genSalt(10)
       const hashedPassword = await bcrypt.hash(password, salt)
       user.password = hashedPassword
+    }
+
+    if (req.file) {
+      const fileName = req.file.originalname + '-' + Date.now()
+      const filePath = 'uploads/' + fileName
+
+      fs.rename(req.file.path, filePath, (err) => {
+        if (err) {
+          // Handle the error if the file couldn't be moved
+          return res.status(500).json({ message: 'Error al guardar la imagen', error: err.message })
+        } else {
+          user.photo = filePath
+          return res.status(202).json({ message: 'Foto actualizada con exito' })
+        }
+      })
     }
 
     if (phone) {
