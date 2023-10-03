@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
-const { userImageUpload } = require('../utils/cloudinary')
+const { uploadImage } = require('../utils/cloudinary')
 const fs = require('fs')
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -129,7 +129,7 @@ const getUserVcf = asyncHandler(async (req, res) => {
   }
   const folderPath = require('../VCF')
   const fileName = `${name}.vcf`
-  const filePath = `${folderPath}/${fileName}`;
+  const filePath = `${folderPath}/${fileName}`
   const vcfData = userToVcf(name, email, phone)
   fs.writeFileSync(filePath, vcfData, 'utf-8')
 
@@ -140,13 +140,49 @@ const getUserVcf = asyncHandler(async (req, res) => {
   })
 })
 
+const uploadProfilePicture = async (req, res) => {
+  const userId = req.user._id
+
+  try {
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    try {
+      if (req.file) {
+        // Obtén la URL directamente de la función uploadImage
+        const imageUrl = await uploadImage(req.file.path)
+
+        // Asigna la URL a user.photo
+        user.photo = imageUrl
+
+        await user.save()
+      } else {
+        return res.status(400).json({ message: 'No se proporcionó ninguna imagen' })
+      }
+
+      // fs.unlinkSync(req.file.path)
+
+      return res.status(202).json({ message: 'Foto de perfil actualizada con éxito' })
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ message: 'Error al cargar la foto de perfil' })
+    }
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ message: 'Error al buscar el usuario' })
+  }
+}
+
 const editUser = asyncHandler(async (req, res) => {
   const {
     name,
     email,
     password,
-    photo,
     phone,
+    photo,
     nickname,
     city,
     linkedIn,
@@ -182,18 +218,12 @@ const editUser = asyncHandler(async (req, res) => {
       user.password = hashedPassword
     }
 
-    // Carga la nueva foto si se proporciona
-    const imgPath = photo
-    if (imgPath == null) {
-      user.photo = req.user.photo
-      // Verifica si imgPath es una ruta de archivo válida antes de cargar la imagen
-    } else {
-      const imageTag = await userImageUpload(imgPath)
-      user.photo = imageTag
-    }
-
     if (phone) {
       user.phone = phone
+    }
+
+    if (photo) {
+      user.photo = photo
     }
 
     if (nickname) {
@@ -249,6 +279,7 @@ module.exports = {
   loginUser,
   getUserData,
   editUser,
+  uploadProfilePicture,
   getProfile,
   getUserVcf
 }

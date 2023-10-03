@@ -19,6 +19,7 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.use('/uploads', express.static('uploads'))
 
 // Routes
 app.use('/api/v1', require('./routes/userRoutes'))
@@ -28,23 +29,32 @@ app.use(errorHandler)
 
 app.listen(port, () => console.log(`Server started on port ${port}`))
 
+/** const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads') // Ruta donde se guardarán los archivos cargados
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now()) // Nombre de archivo único
+  }
+})
+
+const upload = multer({ storage: storage })
+
+app.post('/profile-upload-single', upload.single('photo'), function (req, res, next) {
+  const file = req.file
+  if (!file) {
+    const error = new Error('Please upload a file')
+    error.httpStatusCode = 400
+    return next(error)
+  }
+  res.send(file)
+})
+*/
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
-// console.log(cloudinary.config())
 
 module.exports = cloudinary
-
-/**
-cloudinary.uploader
-  .upload('C:/Users/ivanp/OneDrive/Escritorio/PRESSKIT/backend/assets/bicho.jpg', {
-    resource_type: 'image'
-  })
-  .then((result) => {
-    console.log('success', JSON.stringify(result, null, 2))
-  })
-  .catch((error) => {
-    console.log('error', JSON.stringify(error, null, 2))
-  }) */
