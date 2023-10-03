@@ -3,7 +3,7 @@
 Endpoints
 
 - registerUser
-http://localhost:5001/api/v1/users/register
+http://localhost:5001/api/v1/register
 
 Schema (All fields required to register) {
 name: String,
