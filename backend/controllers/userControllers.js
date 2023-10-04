@@ -110,8 +110,10 @@ const getProfile = asyncHandler(async (req, res) => {
   const u = req.user
   const nicknameU = u.nickname
   const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
-  const filename = `${nicknameU}qrcode.png`
-  generateQRCode(data, filename)
+  const fileName = `${nicknameU}qrcode.png`
+  const folderPath = require('../QR')
+  const filePath = `${folderPath}/${fileName}`
+  generateQRCode(data, filePath)
   res.json(req.user)
 })
 
