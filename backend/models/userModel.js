@@ -63,7 +63,7 @@ const userSchema = mongoose.Schema({
     type: String
   },
   qr: {
-    //
+    type: String
   }
 
 }, {
