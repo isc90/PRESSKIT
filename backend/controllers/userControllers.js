@@ -5,6 +5,8 @@ const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 const { uploadImage } = require('../utils/cloudinary')
 const fs = require('fs')
+const path = require('path');
+const QRCode = require('qrcode')
 
 const registerUser = asyncHandler(async (req, res) => {
   const {
@@ -109,9 +111,9 @@ const getProfile = asyncHandler(async (req, res) => {
   req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
   const u = req.user
   const nicknameU = u.nickname
-  const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
+  // const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
   const fileName = `${nicknameU}qrcode.png`
-  const folderPath = require('../QR')
+  const folderPath = './backend/QR'
   const filePath = `${folderPath}/${fileName}`
   generateQRCode(data, filePath)
   res.json(req.user)
@@ -150,18 +152,51 @@ const getUserVcf = asyncHandler(async (req, res) => {
   END:VCARD
   `
   }
-  const folderPath = require('../VCF')
+  const folderPath = './backend/VCF' //El error estaba AQUI y se ocasionaba por el require
   const fileName = `${name}.vcf`
-  const filePath = `${folderPath}/${fileName}`
+  const filePath = `${folderPath}/${fileName}`;
   const vcfData = userToVcf(name, email, phone)
   fs.writeFileSync(filePath, vcfData, 'utf-8')
-
-  res.download('user.vcf', 'user.vcf', (err) => {
+  // fs.writeFileSync(fileName, vcfData, 'utf-8')
+  res.download(filePath, filePath, (err) => {
     if (err) {
       console.error('Error sending VCF file:', err)
     }
   })
 })
+
+// Function to read a file and convert it to a data URL
+function readFileToDataURL(inputFilePath) {
+  try {
+    // Read the file synchronously and store its content as a Buffer
+    const fileContent = fs.readFileSync(inputFilePath);
+
+    // Convert the file content to a Base64 data URL
+    const dataURL = `data:${getMimeType(inputFilePath)};base64,${fileContent.toString('base64')}`;
+    
+    console.log(dataURL)
+    return dataURL;
+  } catch (err) {
+    console.error('Error reading the file:', err);
+    return null;
+  }
+}
+
+// Function to determine the MIME type based on file extension
+function getMimeType(filePath) {
+  const extname = path.extname(filePath).toLowerCase();
+  switch (extname) {
+    case '.txt':
+      return 'text/plain';
+    case '.jpg':
+      return 'image/jpeg';
+    case '.png':
+      return 'image/png';
+    // Add more MIME types as needed
+    default:
+      return 'application/octet-stream'; // Default to binary data
+  }
+}
 
 const uploadProfilePicture = async (req, res) => {
   const userId = req.user._id
