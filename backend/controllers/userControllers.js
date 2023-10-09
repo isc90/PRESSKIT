@@ -3,7 +3,8 @@ const { upload } = require('../middleware/uploadMiddleware')
 const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
-const { uploadImage } = require('../utils/cloudinary')
+// const { uploadImage } = require('../utils/cloudinary')
+const cloudinary = require('../utils/cloudinary')
 const fs = require('fs')
 const path = require('path');
 const QRCode = require('qrcode')
@@ -199,39 +200,33 @@ function getMimeType(filePath) {
 }
 
 const uploadProfilePicture = async (req, res) => {
-  const userId = req.user._id
-
-  try {
-    const user = await User.findById(userId)
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' })
+  upload.single('photo')(req, res, (err) => {
+    // Verifica si se produjo un error durante la carga
+    if (err) {
+      console.error(err)
+      return res.status(500).send('Error al cargar el archivo.')
     }
 
-    try {
-      if (req.file) {
-        // Obtén la URL directamente de la función uploadImage
-        const imageUrl = await uploadImage(req.file.path)
+    // Verifica si se cargó un archivo
+    if (!req.file) {
+      return res.status(400).send('Ningún archivo fue cargado.')
+    }
 
-        // Asigna la URL a user.photo
-        user.photo = imageUrl
+    // Sube el archivo a Cloudinary
+    cloudinary.uploader.upload_stream(
+      { resource_type: 'auto' },
+      (error, result) => {
+        if (error) {
+          console.error(error)
+          return res.status(500).send('Error al subir el archivo a Cloudinary.')
+        }
 
-        await user.save()
-      } else {
-        return res.status(400).json({ message: 'No se proporcionó ninguna imagen' })
+        // Aquí puedes acceder a la URL del archivo subido en result.secure_url
+        const fileUrl = result.secure_url
+        res.send(`Archivo subido a Cloudinary: ${fileUrl}`)
       }
-
-      // fs.unlinkSync(req.file.path)
-
-      return res.status(202).json({ message: 'Foto de perfil actualizada con éxito' })
-    } catch (error) {
-      console.error(error)
-      return res.status(500).json({ message: 'Error al cargar la foto de perfil' })
-    }
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({ message: 'Error al buscar el usuario' })
-  }
+    ).end(req.file.buffer)
+  })
 }
 
 const editUser = asyncHandler(async (req, res) => {
