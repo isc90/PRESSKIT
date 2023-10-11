@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { registerUser, loginUser, getUserData, editUser, getProfile, getUserVcf, obtainPathQRCode, obtainPathVcf } = require('../controllers/userControllers')
+const { registerUser, loginUser, getUserData, editUser, getProfile, getUserVcf, obtainPathVcf, obtainPathQRCode } = require('../controllers/userControllers')
 const { auth } = require('../middleware/authMiddleware')
 const { upload } = require('../middleware/uploadMiddleware')
 
@@ -9,12 +9,12 @@ router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.get('/profile/:nickname', getProfile)
 router.get('/vcf/:nickname', getUserVcf)
-router.post('/qr/:nickname', auth, obtainPathQRCode)
-router.post('/vcf/:nickname', auth, obtainPathVcf)
+router.get('/qr/:nickname', obtainPathQRCode)
+router.get('/vcf/:nickname', obtainPathVcf)
 
 // private
 router.get('/me', auth, getUserData)
-router.post('/editMyInfo/:id', auth, upload.single('photo'), editUser)
+router.post('/editMyInfo/:id', auth, editUser)
 
 router.post('/uploadProfilePicture', auth, upload.single('photo'), async (req, res) => {
   try {

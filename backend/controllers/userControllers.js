@@ -110,13 +110,6 @@ const getUserData = asyncHandler(async (req, res) => {
 
 const getProfile = asyncHandler(async (req, res) => {
   req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
-  const u = req.user
-  const nicknameU = u.nickname
-  const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
-  const fileName = `${nicknameU}qrcode.png`
-  const folderPath = './backend/QR'
-  const filePath = `${folderPath}/${fileName}`
-  generateQRCode(data, filePath)
   res.json(req.user)
 })
 
@@ -134,8 +127,11 @@ async function generateQRCode (data, filename) {
     console.error('Error generating QR code:', error)
   }
 }
-const obtainPathQRCode = async (req, res) => {
-  const userId = req.user._id // Obtener el _id del usuario desde req.user
+
+const obtainPathQRCode = async (data, res) => {
+  // const user = await User.findOne({ nickname: req.user._id })
+  const user = await User.findOne(data)
+  const userId = user._id // Obtener el _id del usuario desde req.user
 
   try {
     const user = await User.findById(userId)
@@ -156,7 +152,8 @@ const obtainPathQRCode = async (req, res) => {
 }
 
 const obtainPathVcf = async (req, res) => {
-  const userId = req.user._id
+  const user = await User.findOne({ nickname: req.params.nickname })
+  const userId = user._id
 
   try {
     const user = await User.findById(userId)
@@ -182,33 +179,36 @@ const getUserVcf = asyncHandler(async (req, res) => {
   const name = user1.name
   const email = user1.email
   const phone = user1.phone
-  if (!req.user) {
+
+  if (!user1) {
     return res.status(404).json({ error: 'User not found' })
   }
+
   function userToVcf (n, e, p) {
     return `BEGIN:VCARD
   VERSION:3.0
-  FN:${n}
+  NAME:${n}
   EMAIL:${e}
   TEL:${p}
   END:VCARD
   `
   }
-  const folderPath = './backend/VCF' // El error estaba AQUI y se ocasionaba por el require
+
+  const folderPath = './backend/VCF'
   const fileName = `${name}.vcf`
   const filePath = `${folderPath}/${fileName}`
   const vcfData = userToVcf(name, email, phone)
-  fs.writeFileSync(filePath, vcfData, 'utf-8')
-  // fs.writeFileSync(fileName, vcfData, 'utf-8')
-  user1.vcf = filePath // Asigna el valor de filePath al campo vcf en el objeto de usuario
 
-  user1.save((err) => {
-    if (err) {
-      console.error('Error al guardar el campo vcf en la base de datos:', err)
-    } else {
-      console.log('Campo vcf guardado con éxito en la base de datos.')
-    }
-  })
+  fs.writeFileSync(filePath, vcfData, 'utf-8')
+  user1.vcf = filePath
+
+  try {
+    await user1.save()
+    console.log('Campo vcf guardado con éxito en la base de datos.')
+  } catch (err) {
+    console.error('Error al guardar el campo vcf en la base de datos:', err)
+  }
+
   res.download(filePath, filePath, (err) => {
     if (err) {
       console.error('Error sending VCF file:', err)
@@ -295,7 +295,9 @@ const editUser = asyncHandler(async (req, res) => {
     website,
     description,
     services,
-    tags
+    tags,
+    vcf,
+    qr
   } = req.body
 
   const userId = req.user._id
@@ -320,21 +322,6 @@ const editUser = asyncHandler(async (req, res) => {
       user.password = hashedPassword
     }
 
-    if (req.file) {
-      const fileName = req.file.originalname + '-' + Date.now()
-      const filePath = 'uploads/' + fileName
-
-      fs.rename(req.file.path, filePath, (err) => {
-        if (err) {
-          // Handle the error if the file couldn't be moved
-          return res.status(500).json({ message: 'Error al guardar la imagen', error: err.message })
-        } else {
-          user.photo = filePath
-          return res.status(202).json({ message: 'Foto actualizada con exito' })
-        }
-      })
-    }
-
     if (phone) {
       user.phone = phone
     }
@@ -345,6 +332,13 @@ const editUser = asyncHandler(async (req, res) => {
 
     if (nickname) {
       user.nickname = nickname
+
+      const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nickname}`
+      const fileName = `${nickname}qrcode.png`
+      const folderPath = './backend/QR'
+      const filePath = `${folderPath}/${fileName}`
+      generateQRCode(data, filePath)
+      user.qr = filePath
     }
 
     if (city) {
@@ -382,7 +376,6 @@ const editUser = asyncHandler(async (req, res) => {
     if (tags) {
       user.tags = tags
     }
-
     await user.save()
 
     res.status(200).json({ message: 'Usuario actualizado con éxito' })
