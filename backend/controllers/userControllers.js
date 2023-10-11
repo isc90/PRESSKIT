@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 // const { uploadImage } = require('../utils/cloudinary')
 const cloudinary = require('../utils/cloudinary')
 const fs = require('fs')
-const path = require('path');
+const path = require('path')
 const QRCode = require('qrcode')
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -112,7 +112,7 @@ const getProfile = asyncHandler(async (req, res) => {
   req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
   const u = req.user
   const nicknameU = u.nickname
-  // const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
+  const data = `https://cute-jade-drill-sock.cyclic.cloud/api/v1/${nicknameU}`
   const fileName = `${nicknameU}qrcode.png`
   const folderPath = './backend/QR'
   const filePath = `${folderPath}/${fileName}`
@@ -134,6 +134,47 @@ async function generateQRCode (data, filename) {
     console.error('Error generating QR code:', error)
   }
 }
+const obtainPathQRCode = async (req, res) => {
+  const userId = req.user._id // Obtener el _id del usuario desde req.user
+
+  try {
+    const user = await User.findById(userId)
+
+    if (!user || !user.nickname) {
+      return res.status(400).json({ error: 'User or nickname not found' })
+    }
+
+    user.qr = `./backend/QR/${user.nickname}qrcode.png`
+
+    await user.save()
+
+    res.json({ qrPath: user.qr })
+  } catch (error) {
+    console.error('Error al obtener o guardar el usuario:', error)
+    res.status(500).json({ error: 'Error al obtener o guardar el usuario' })
+  }
+}
+
+const obtainPathVcf = async (req, res) => {
+  const userId = req.user._id
+
+  try {
+    const user = await User.findById(userId)
+
+    if (!user || !user.nickname) {
+      return res.status(400).json({ error: 'User or nickname not found' })
+    }
+
+    user.vcf = `./backend/VCF/${user.name}.vcf`
+
+    await user.save()
+
+    res.json({ vcfPath: user.vcf })
+  } catch (error) {
+    console.error('Error al obtener o guardar el usuario:', error)
+    res.status(500).json({ error: 'Error al obtener o guardar el usuario' })
+  }
+}
 
 const getUserVcf = asyncHandler(async (req, res) => {
   req.user = await User.findOne({ nickname: req.params.nickname }).select('-password')
@@ -153,12 +194,21 @@ const getUserVcf = asyncHandler(async (req, res) => {
   END:VCARD
   `
   }
-  const folderPath = './backend/VCF' //El error estaba AQUI y se ocasionaba por el require
+  const folderPath = './backend/VCF' // El error estaba AQUI y se ocasionaba por el require
   const fileName = `${name}.vcf`
-  const filePath = `${folderPath}/${fileName}`;
+  const filePath = `${folderPath}/${fileName}`
   const vcfData = userToVcf(name, email, phone)
   fs.writeFileSync(filePath, vcfData, 'utf-8')
   // fs.writeFileSync(fileName, vcfData, 'utf-8')
+  user1.vcf = filePath // Asigna el valor de filePath al campo vcf en el objeto de usuario
+
+  user1.save((err) => {
+    if (err) {
+      console.error('Error al guardar el campo vcf en la base de datos:', err)
+    } else {
+      console.log('Campo vcf guardado con éxito en la base de datos.')
+    }
+  })
   res.download(filePath, filePath, (err) => {
     if (err) {
       console.error('Error sending VCF file:', err)
@@ -167,35 +217,35 @@ const getUserVcf = asyncHandler(async (req, res) => {
 })
 
 // Function to read a file and convert it to a data URL
-function readFileToDataURL(inputFilePath) {
+function readFileToDataURL (inputFilePath) {
   try {
     // Read the file synchronously and store its content as a Buffer
-    const fileContent = fs.readFileSync(inputFilePath);
+    const fileContent = fs.readFileSync(inputFilePath)
 
     // Convert the file content to a Base64 data URL
-    const dataURL = `data:${getMimeType(inputFilePath)};base64,${fileContent.toString('base64')}`;
-    
+    const dataURL = `data:${getMimeType(inputFilePath)};base64,${fileContent.toString('base64')}`
+
     console.log(dataURL)
-    return dataURL;
+    return dataURL
   } catch (err) {
-    console.error('Error reading the file:', err);
-    return null;
+    console.error('Error reading the file:', err)
+    return null
   }
 }
 
 // Function to determine the MIME type based on file extension
-function getMimeType(filePath) {
-  const extname = path.extname(filePath).toLowerCase();
+function getMimeType (filePath) {
+  const extname = path.extname(filePath).toLowerCase()
   switch (extname) {
     case '.txt':
-      return 'text/plain';
+      return 'text/plain'
     case '.jpg':
-      return 'image/jpeg';
+      return 'image/jpeg'
     case '.png':
-      return 'image/png';
+      return 'image/png'
     // Add more MIME types as needed
     default:
-      return 'application/octet-stream'; // Default to binary data
+      return 'application/octet-stream' // Default to binary data
   }
 }
 
@@ -348,5 +398,7 @@ module.exports = {
   editUser,
   uploadProfilePicture,
   getProfile,
-  getUserVcf
+  getUserVcf,
+  obtainPathQRCode,
+  obtainPathVcf
 }

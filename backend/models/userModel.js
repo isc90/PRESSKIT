@@ -62,6 +62,9 @@ const userSchema = mongoose.Schema({
   tags: {
     type: String
   },
+  vcf: {
+    type: String
+  },
   qr: {
     type: String
   }
