@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const validator = require('validator')
 
 const userSchema = mongoose.Schema({
   name: {
@@ -8,7 +9,13 @@ const userSchema = mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Por favor teclea un email'],
-    unique: true
+    unique: true,
+    validate: {
+      validator: (value) => {
+        return validator.isEmail(value)
+      },
+      message: 'El campo "email" debe ser una dirección de correo electrónico válida.'
+    }
   },
   password: {
     type: String,
@@ -19,11 +26,13 @@ const userSchema = mongoose.Schema({
   },
   phone: {
 
-    type: Number,
+    type: String,
     required: [true, 'Por favor introduce tu telefono'],
     validate: {
-      validator: value => validatePhoneLength(value, 10),
-      message: 'Ingresa un numero valido de 10 digitos'
+      validator: (value) => {
+        return validator.isMobilePhone(value, 'es-MX')
+      },
+      message: 'El campo "phone" debe ser un número de teléfono válido en formato mexicano.'
     },
     unique: true
   },
@@ -72,9 +81,5 @@ const userSchema = mongoose.Schema({
 }, {
   timestamps: true
 })
-
-function validatePhoneLength (value, length) {
-  return value.toString().length === length
-}
 
 module.exports = mongoose.model('User', userSchema)
